@@ -1,0 +1,49 @@
+# ==========================================
+# Archivos y Directorios del Negocio (SIGMA)
+# ==========================================
+# Se excluyen los documentos ofimáticos originales por privacidad institucional y peso.
+/CF 2022/
+/CF 2023/
+/CF 2024/
+/CF 2025/
+/Recursos/
+
+# Se excluyen los resultados JSON masivos ya que se pueden regenerar
+/sigma_etl/output/
+
+# ==========================================
+# Entornos, IDEs y Logs
+# ==========================================
+# Logs y Archivos Temoporales
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Visual Studio Code & IDEs
+.vscode/
+.idea/
+
+# Carpetas de Mac / Windows
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==========================================
+# Pyhton (Cache y Entornos Virtuales)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos Virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Herramientas de dependencia y testing
+.tox/
+.pytest_cache/
+.coverage
+htmlcov/
