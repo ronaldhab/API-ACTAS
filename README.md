@@ -4,11 +4,12 @@ Una herramienta desarrollada en Python para la automatización, procesamiento y 
 
 ## 🚀 Características Principales
 
-1. **Conversión Legacy Automática**: Emplea `LibreOffice` nativo interconectado por CLI para convertir en lote archivos bi-direccionales de la era `.doc` antigua al estándar moderno `.docx`.
-2. **Máquina de Estado de Lectura**: Transita dinámicamente sobre la **Sección 6 (Comisión de Mesa)**, abstrayendo con limpieza subpuntos estructurados (6.1, 6.2, etc.), sus contenidos, y categorizando sus Acuerdos o Notas explícitas, parando de forma segura el bucle al impactar con la Sección 7.
-3. **Escáner Deduplicador Inteligente**: Diferencia y excluye documentos en blanco (Asistencias, carpetas oficios) y compara colisiones de repetidos para preferir la "Versión Definitiva" de un acta sobre sus revisiones inconclusas.
-4. **Agrupación Modular de Anexos / Tablas**: Parsea cualquier tabla adosada a un subpunto bajo formatos horizontales o verticales y esquematiza diccionarios JSON jerárquicos de forma desasistida, reconociendo agrupaciones como "Principales / Suplentes".
-5. **Modos de Funcionamiento Múltiples**: Puede escanear de corrido múltiples años de directorios, o funcionar como API de línea de comando recibiendo un solo archivo para integrarse a subidas web.
+1. **Escaneo de Directorios Dinámico**: Detecta automáticamente en el directorio base cualquier carpeta que inicie con `CF ` (por ejemplo, `CF 2024`, `CF 2025`, etc.) sin requerir configuraciones rígidas.
+2. **Conversión Legacy Automática**: Emplea `LibreOffice` nativo interconectado por CLI para convertir en lote archivos bi-direccionales de la era `.doc` antigua al estándar moderno `.docx`.
+3. **Máquina de Estado de Lectura**: Transita dinámicamente sobre la **Sección 6 (Comisión de Mesa)**, abstrayendo con limpieza subpuntos estructurados (6.1, 6.2, etc.), sus contenidos, y categorizando sus Acuerdos o Notas explícitas, parando de forma segura el bucle al impactar con la Sección 7.
+4. **Escáner Deduplicador Inteligente**: Diferencia y excluye documentos en blanco (Asistencias, carpetas oficios) y compara colisiones de repetidos para preferir la "Versión Definitiva" de un acta sobre sus revisiones inconclusas.
+5. **Agrupación Modular de Anexos / Tablas**: Parsea cualquier tabla adosada a un subpunto bajo formatos horizontales o verticales y esquematiza diccionarios JSON jerárquicos de forma desasistida, reconociendo agrupaciones como "Principales / Suplentes".
+6. **Modos de Funcionamiento Múltiples**: Puede escanear de corrido múltiples años de directorios, o funcionar como API de línea de comando recibiendo un solo archivo para integrarse a arquitecturas de microservicios.
 
 ## 📦 Requisitos Previos
 
@@ -18,10 +19,10 @@ Una herramienta desarrollada en Python para la automatización, procesamiento y 
 
 ## 🛠️ Instalación
 
-1. Clona o sitúa este repositorio base (`sigma_etl`) en un directorio que comparta rama principal con tu carpeta persistente de Actas.
+1. Clona o sitúa este repositorio base (`sigma_etl`) en el directorio principal junto a tu árbol de carpetas de Actas.
 2. Instala los requerimientos:
     ```bash
-    pip install -r requirements.txt
+    pip install -r sigma_etl/requirements.txt
     ```
 
 ## ⚙️ Uso e Instrucciones
@@ -29,34 +30,42 @@ Una herramienta desarrollada en Python para la automatización, procesamiento y 
 El programa puede operar en dos vertientes lógicas, controladas desde el orquestador principal `main.py`.
 
 ### Modo Batch (Masivo)
-Lee recursivamente los directorios configurados (por defecto `CF 2022`, `CF 2023`, `CF 2024`, `Recursos`), hace conversión previa, los filtra, extrae todo y emite un gran volumen JSON consolidante:
+Detecta de manera dinámica y automática cualquier directorio que comience por 'CF' directamente sobre la raíz de ejecución, escanea las actas en sus raíces o subcarpetas (`actas`), hace conversión previa, filtra el ruido documental, extrae la información y emite un gran volumen JSON consolidado:
 
 ```bash
-python main.py
+python sigma_etl/main.py
 ```
-**Salida**: `output/actas_extraidas.json` (consolidado) y `output/errores.json` (reporte global de excepciones).
+**Salida**: `sigma_etl/output/actas_extraidas.json` (consolidado) y reportes de error/excepciones.
 
 ### Modo API (Archivo Individual)
-Apunta el mecanismo a un único y preciso archivo mediante el flag `--file`. Esto está optimizado para que arquitecturas backend soliciten lectura instantánea al subir un documento:
+Apunta el mecanismo a un único y preciso archivo mediante el flag `--file`. Esto está optimizado para que arquitecturas backend o web apps soliciten lectura de forma unitaria:
 
 ```bash
-python main.py --file "C:\Rutas\absolutas\ACTA_ejemplo.docx"
+python sigma_etl/main.py --file "C:\Rutas\absolutas\ACTA_ejemplo.docx"
 ```
 
 Alternativamente puedes decirle en qué directorio colocar el archivo resultante:
 ```bash
-python main.py --file "ACTA_ejemplo.docx" --output "C:\Servidor\temporal\"
+python sigma_etl/main.py --file "ACTA_ejemplo.docx" --output "C:\Servidor\temporal"
 ```
-**Salida**: `%nombre_del_archivo%_extraida.json`.
+**Salida**: El JSON se guardará como `%nombre_del_archivo%_extraida.json` en la ruta especificada o por defecto en `/output`.
 
-## 📂 Arquitectura Explicada
+## 📂 Arquitectura del Sistema
 
-*   `main.py`: Punto de entrada unificado y Orquestador de fases.
-*   `config.py`: Gestor central de rutas globales y Diccionario maestro de TODAS las expresiones regulares (Regex) de búsqueda.
-*   `logger_config.py`: Logger avanzado de operaciones exportado dualmente a consola y al archivo permanente `/output/etl.log`.
-*   `models.py`: Estructuras de Datos robustas de tipado (`Dataclass`) validando el contrato de Salida de los objetos `SubPunto` y el reporte Final `ActaResult`.
-*   `doc_converter.py`: Middleware que invoca `soffice --headless` agnóstico a SO.
-*   `file_explorer.py`: Módulo iterativo de deduplicación de metadatos del file system.
-*   `metadata_extractor.py`: Analítica de metadatos estáticos desde headers de docx o heurística de los nombres del archivo en caso de ser corrompidos.
-*   `section_parser.py`: El corazón del Engine, iterador de secuencias XML / Blocks capturando Párrafos y Tablas, y traduciendo irregularidades relacionales a Diccionarios asimilables (`Anexos`).
-*   `output_formatter.py`: Sanitizado y escritura serializada JSON amigable a Postgres.
+La herramienta aplica un diseño modular orientado a dominios (core, extractores, utilidades) para favorecer el mantenimiento y la escalabilidad de reglas documentales.
+
+*   **`sigma_etl/main.py`**: Punto de entrada unificado y herramienta de línea de comandos (CLI). Orquesta la fase de descubrimiento, extracción, procesado de errores y serialización.
+
+### 🧠 `core/` (Estructura y Lógica Múltiple)
+*   `config.py`: Gestor central de configuración. Contiene el auto-descubrimiento dinámico de rutas analizando carpetas en la raíz local y el diccionario maestro de TODAS las expresiones regulares (Regex) de búsqueda y segmentación.
+*   `logger.py`: Logger robusto configurado para emitir mensajes tanto por consola estándar como al archivo permanente `/output/etl.log`.
+*   `models.py`: Modelos de Datos nativos basados en `dataclasses` que aseguran el contrato estricto de tipos de los objetos transaccionales (`SubPunto`, `ActaResult`).
+
+### 🔎 `extractors/` (Motores de Recolección de Información)
+*   `metadata_extractor.py`: Realiza analítica iterativa para hallar metadatos clave (Números de acta, fechas, identificadores) preferentemente desde el content-header o cuerpo, acudiendo a heurística sobre el nombre del archivo si hay defectos de redacción.
+*   `section_parser.py`: El corazón absoluto del ciclo ETL. Funciona como una máquina de estados, recorriendo párrafos provenientes de MS Word (`python-docx`), interceptando la "Sección 6", emparejando tablas embebidas, detectando Acuerdos formalizados y mapeando jerarquías mediante expresiones regulares para construir el objeto final.
+
+### 🛠️ `utils/` (Herramientas Auxiliares I/O)
+*   `doc_converter.py`: Módulo que interactúa con la línea de comandos del Sistema Operativo para invocar procesos `soffice --headless` y lograr migrar en lote documentos binarios `.doc` viejos al formato comprimido `.docx` estructurable.
+*   `file_explorer.py`: Subsistema de exploración recursiva. Diferencia tipos de documentos y aplica algoritmos de puntuación para deduplicar documentos que presentan distintas revisiones o duplicados mal nombrados (por ej. priorizando una versión que incluya "DEF").
+*   `output_formatter.py`: Motor final que genera directorios si no existen y deposita los diccionarios extraídos con un formato limpio en JSON (`utf-8` y `ensure_ascii=False`) de forma transparente para Postgres.

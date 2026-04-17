@@ -1,13 +1,18 @@
 import re
 
+import os
+
 # Rutas base a escanear (relativas al directorio donde se ejecute main.py, que será SIGMA)
-ACTAS_DIRS = [
-    "CF 2022/actas",
-    "CF 2023/actas",
-    "CF 2024/actas",
-    "CF 2025/actas",
-    "Recursos/Actas nuevas"
-]
+ACTAS_DIRS = []
+base_path = "."
+if os.path.exists(base_path):
+    for folder in os.listdir(base_path):
+        if folder.startswith("CF") and os.path.isdir(os.path.join(base_path, folder)):
+            # Verificamos si existe el subdirectorio 'actas'
+            if os.path.isdir(os.path.join(base_path, folder, "actas")):
+                ACTAS_DIRS.append(f"{folder}/actas")
+            else:
+                ACTAS_DIRS.append(folder)
 
 # Prefijos de archivos a EXCLUIR en file_explorer.py
 EXCLUDED_PREFIXES = [
